@@ -1,6 +1,15 @@
 import { useEffect, useState, useRef, MutableRefObject } from 'react';
 import * as faceapi from 'face-api.js';
-import { Alert, Button, Center, Collapse, Container, LoadingOverlay, Title } from '@mantine/core';
+import {
+  Alert,
+  Button,
+  Center,
+  Collapse,
+  Container,
+  LoadingOverlay,
+  Title,
+  Overlay,
+} from '@mantine/core';
 
 import { AddFace } from '../AddFace/AddFace';
 
@@ -70,7 +79,9 @@ export function WebCamRecognition() {
     Object.keys(localStorage).forEach((k) => {
       if (k !== 'ally-supports-cache') {
         labeledDescriptors.push(
-          new faceapi.LabeledFaceDescriptors(k, JSON.parse(localStorage.getItem(k)!))
+          new faceapi.LabeledFaceDescriptors(k, [
+            new Float32Array(Object.values(JSON.parse(localStorage.getItem(k)!))),
+          ])
         );
       }
     });

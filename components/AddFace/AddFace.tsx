@@ -1,6 +1,7 @@
 import { useState, MutableRefObject } from 'react';
 import * as faceapi from 'face-api.js';
 import { Alert, Button, Container, TextInput } from '@mantine/core';
+import { showNotification } from '@mantine/notifications';
 
 interface AddFaceProps {
   video: MutableRefObject<HTMLVideoElement>;
@@ -34,7 +35,7 @@ export function AddFace({ video, canvas }: AddFaceProps) {
       return setErr('Could not find face');
     }
 
-    // const faceMatcher = new faceapi.FaceMatcher(face);
+    console.log(face.descriptor);
     localStorage.setItem(name, JSON.stringify(face.descriptor));
 
     const resizedDetections = faceapi.resizeResults(face, { width: 640, height: 480 });
@@ -43,7 +44,13 @@ export function AddFace({ video, canvas }: AddFaceProps) {
     canvas && canvas.current && faceapi.draw.drawDetections(canvas.current, resizedDetections);
     canvas && canvas.current && faceapi.draw.drawFaceLandmarks(canvas.current, resizedDetections);
 
+    showNotification({
+      title: 'Face added successfully',
+      message: `${name} added to database`,
+      autoClose: 5000,
+    });
     setErr(null);
+    setName('');
 
     await sleep(5000);
     canvas.current.getContext('2d')!.clearRect(0, 0, 640, 480);
@@ -70,7 +77,7 @@ export function AddFace({ video, canvas }: AddFaceProps) {
             <Button
               variant="light"
               loading={loading}
-              style={{ display: 'block' }}
+              style={{ position: 'relative' }}
               disabled={name === ''}
               onClick={() => {
                 setLoading(true);
