@@ -5,6 +5,7 @@ specifiers:
   '@emotion/react': ^11.10.4
   '@emotion/server': ^11.10.0
   '@mantine/core': ^5.7.2
+  '@mantine/form': ^5.7.2
   '@mantine/hooks': ^5.7.2
   '@mantine/next': ^5.7.2
   '@mantine/notifications': ^5.7.2
@@ -34,13 +35,13 @@ specifiers:
   prettier: ^2.7.1
   react: 18.2.0
   react-dom: 18.2.0
-  stylis-plugin-rtl: ^2.1.1
   typescript: 4.8.4
 
 dependencies:
   '@emotion/react': 11.10.5_lmetjsborprf4euefw4m3w36su
   '@emotion/server': 11.10.0
   '@mantine/core': 5.7.2_77o55g32ovb32jcvrlteplarbu
+  '@mantine/form': 5.7.2_react@18.2.0
   '@mantine/hooks': 5.7.2_react@18.2.0
   '@mantine/next': 5.7.2_gwjfpevgdz35a6gaooo7tcafza
   '@mantine/notifications': 5.7.2_gpb23uvyv4tvmpz42jjjg2mwmq
@@ -54,7 +55,6 @@ dependencies:
   next: 13.0.3_mqvh5p7ejg4taogoj6tpk3gd5a
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
-  stylis-plugin-rtl: 2.1.1
 
 devDependencies:
   '@babel/core': 7.20.2
@@ -519,6 +519,16 @@ packages:
     transitivePeerDependencies:
       - '@emotion/react'
       - '@types/react'
+    dev: false
+
+  /@mantine/form/5.7.2_react@18.2.0:
+    resolution: {integrity: sha512-FmjnTX6Xm24rpfJjR2sebamgzskiCGb4fmOPKyDc5wThnCr2VnPJjlUOg2FOeQjE+C6kr5Jw+QrXPpG4kVyh0A==}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      fast-deep-equal: 3.1.3
+      klona: 2.0.5
+      react: 18.2.0
     dev: false
 
   /@mantine/hooks/5.7.2_react@18.2.0:
@@ -1524,11 +1534,6 @@ packages:
       which: 2.0.2
     dev: true
 
-  /cssjanus/2.1.0:
-    resolution: {integrity: sha512-kAijbny3GmdOi9k+QT6DGIXqFvL96aksNlGr4Rhk9qXDZYWUojU4bRc3IHWxdaLNOqgEZHuXoe5Wl2l7dxLW5g==}
-    engines: {node: '>=10.0.0'}
-    dev: false
-
   /csstype/3.0.9:
     resolution: {integrity: sha512-rpw6JPxK6Rfg1zLOYCSwle2GFOOsnjmDYDaBwEcwoOg4qlsIVCN789VkBZDJAGi4T07gI4YSutR43t9Zz4Lzuw==}
     dev: false
@@ -2121,7 +2126,6 @@ packages:
 
   /fast-deep-equal/3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
-    dev: true
 
   /fast-glob/3.2.12:
     resolution: {integrity: sha512-DVj4CQIYYow0BlaelwK1pHl5n5cRSJfM60UA0zK891sVInoPri2Ekj7+e1CT3/3qxXenpI+nBBmQAcJPJgaj4w==}
@@ -2667,6 +2671,11 @@ packages:
       array-includes: 3.1.6
       object.assign: 4.1.4
     dev: true
+
+  /klona/2.0.5:
+    resolution: {integrity: sha512-pJiBpiXMbt7dkzXe8Ghj/u4FfXOOa98fPW+bihOJ4SjnoijweJrNThJfd3ifXpXhREjpoF2mZVH1GfS9LV3kHQ==}
+    engines: {node: '>= 8'}
+    dev: false
 
   /language-subtag-registry/0.3.22:
     resolution: {integrity: sha512-tN0MCzyWnoz/4nHS6uxdlFWoUZT7ABptwKPQ52Ea7URk6vll88bWBVhodtnlfEuCcKWNGoc+uGbw1cwa9IKh/w==}
@@ -3547,14 +3556,6 @@ packages:
       '@babel/core': 7.20.2
       client-only: 0.0.1
       react: 18.2.0
-    dev: false
-
-  /stylis-plugin-rtl/2.1.1:
-    resolution: {integrity: sha512-q6xIkri6fBufIO/sV55md2CbgS5c6gg9EhSVATtHHCdOnbN/jcI0u3lYhNVeuI65c4lQPo67g8xmq5jrREvzlg==}
-    peerDependencies:
-      stylis: 4.x
-    dependencies:
-      cssjanus: 2.1.0
     dev: false
 
   /stylis/4.1.3:

@@ -1,8 +1,8 @@
 import * as faceApi from 'face-api.js';
-import { Button, Container, createStyles, SimpleGrid, Skeleton, Title } from '@mantine/core';
+import { createStyles, Grid, Paper, SimpleGrid, Skeleton } from '@mantine/core';
 import { useRef, useEffect, useState } from 'react';
-import { ThemeContext } from '@emotion/react';
 import Attendance from './Attendance';
+import CreateStudent from './CreateStudent';
 
 const useStyles = createStyles((theme) => ({
   wrapper: {
@@ -44,7 +44,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export function WebCam() {
+export default function WebCam() {
   const { classes } = useStyles();
 
   const [modelsLoading, setModelsLoading] = useState(true);
@@ -54,6 +54,7 @@ export function WebCam() {
   useEffect(() => {
     const load = async () => {
       await faceApi.nets.tinyFaceDetector.load('/models/');
+      await faceApi.nets.ssdMobilenetv1.load('/models/');
       await faceApi.nets.faceLandmark68Net.load('/models/');
       await faceApi.nets.faceRecognitionNet.load('/models/');
       await faceApi.nets.faceExpressionNet.load('/models/');
@@ -75,10 +76,16 @@ export function WebCam() {
         <Skeleton visible={modelsLoading}>
           <video ref={videoRef} autoPlay muted controls={false} className={classes.video} />
         </Skeleton>
-        <div>
-          <Title>Status</Title>
-          <Attendance videoRef={videoRef} />
-        </div>
+        <Paper shadow="md" p="md" m={5}>
+          <Grid justify="space-between" columns={24}>
+            <Grid.Col span={6}>
+              <Attendance videoRef={videoRef} />
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <CreateStudent videoRef={videoRef} />
+            </Grid.Col>
+          </Grid>
+        </Paper>
       </SimpleGrid>
     </div>
   );
