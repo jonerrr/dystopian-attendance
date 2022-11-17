@@ -3,6 +3,8 @@ import { Button, Popover, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import * as faceApi from 'face-api.js';
 import { showNotification } from '@mantine/notifications';
+import { useRecoilValue } from 'recoil';
+import { attendanceSelector } from './Attendance';
 
 interface CreateStudentProps {
   videoRef: RefObject<HTMLVideoElement>;
@@ -11,6 +13,7 @@ interface CreateStudentProps {
 export default function CreateStudent({ videoRef }: CreateStudentProps) {
   const [creating, setCreating] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const attending = useRecoilValue(attendanceSelector);
 
   const form = useForm({
     initialValues: {
@@ -23,7 +26,17 @@ export default function CreateStudent({ videoRef }: CreateStudentProps) {
 
   //TODO use API instead
   const submitStudent = async (values: { firstName: string }) => {
+    if (attending) {
+      return showNotification({
+        title: 'Error',
+        message: 'Please stop scanning before adding a new student',
+        color: 'red',
+        autoClose: 5000,
+      });
+    }
+
     setScanning(true);
+    videoRef.current?.pause();
     const face = await faceApi
       .detectSingleFace(videoRef.current!, new faceApi.SsdMobilenetv1Options())
       .withFaceLandmarks()
@@ -39,8 +52,8 @@ export default function CreateStudent({ videoRef }: CreateStudentProps) {
       });
     }
     localStorage.setItem(values.firstName.toLowerCase(), JSON.stringify(face.descriptor));
-
     setScanning(false);
+    videoRef.current?.play();
     form.reset();
     return showNotification({
       title: 'Success',
@@ -57,7 +70,7 @@ export default function CreateStudent({ videoRef }: CreateStudentProps) {
           size="xl"
           onClick={() => setCreating(!creating)}
           variant="gradient"
-          gradient={{ from: 'blue', to: 'teal' }}
+          gradient={{ from: 'pink', to: 'blue' }}
           disabled={scanning}
         >
           Add Student

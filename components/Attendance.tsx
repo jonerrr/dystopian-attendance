@@ -1,22 +1,44 @@
 import { RefObject, useState } from 'react';
-import { Button, Container, Paper } from '@mantine/core';
-import * as faceApi from 'face-api.js';
+import { atom, selector, useRecoilState } from 'recoil';
+import { Button } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
+import * as faceApi from 'face-api.js';
 
 interface AttendanceProps {
   videoRef: RefObject<HTMLVideoElement>;
 }
 
-export default function Attendance({ videoRef }: AttendanceProps) {
-  const [scanning, setScanning] = useState(false);
-  const [interval, addInterval] = useState<NodeJS.Timer | null>(null);
+interface UserData {
+  name: string;
+  attendedAt: Date;
+}
 
-  //   let interval: NodeJS.Timer;
+const scanningState = atom({
+  key: 'attendanceScanningState',
+  default: false,
+});
+export const attendanceSelector = selector({
+  key: 'attendanceScanningSelector',
+  get: ({ get }) => get(scanningState),
+});
+
+const userState = atom<UserData[]>({
+  key: 'userState',
+  default: [],
+});
+export const userSelector = selector({
+  key: 'userSelector',
+  get: ({ get }) => get(userState),
+});
+
+export default function Attendance({ videoRef }: AttendanceProps) {
+  const [scanning, setScanning] = useRecoilState(scanningState);
+  const [interval, addInterval] = useState<NodeJS.Timer | null>(null);
+  const [users, setUsers] = useRecoilState(userState);
 
   const scan = () => {
     setScanning(true);
-
-    const descriptors: faceApi.LabeledFaceDescriptors[] = [];
+    let descriptors: faceApi.LabeledFaceDescriptors[] = [];
 
     //TODO replace with API
     Object.keys(localStorage).forEach((k) => {
@@ -29,7 +51,6 @@ export default function Attendance({ videoRef }: AttendanceProps) {
         );
       }
     });
-    const matcher = new faceApi.FaceMatcher(descriptors);
 
     showNotification({
       title: 'Scanning started',
@@ -39,17 +60,24 @@ export default function Attendance({ videoRef }: AttendanceProps) {
 
     addInterval(
       setInterval(async () => {
+        console.log(users);
+        console.log(descriptors);
         const faces = await faceApi
           .detectAllFaces(videoRef.current!, new faceApi.SsdMobilenetv1Options())
           .withFaceLandmarks()
           .withFaceDescriptors();
 
+        const matcher = new faceApi.FaceMatcher(descriptors);
+
         faces.forEach((f) => {
-          const matches = matcher.findBestMatch(f.descriptor);
-          console.log(matches);
+          const match = matcher.findBestMatch(f.descriptor);
+
+          setUsers([...users, { name: match.label, attendedAt: new Date() }]);
+          descriptors = descriptors.filter((d) => d.label !== match.label);
+
           showNotification({
             title: 'Match detected',
-            message: `${matches.label} located`,
+            message: `${match.label} attended`,
             autoClose: 7000,
           });
         });
@@ -69,7 +97,7 @@ export default function Attendance({ videoRef }: AttendanceProps) {
           : scan
       }
       variant="gradient"
-      gradient={scanning ? { from: 'red', to: 'orange' } : { from: 'teal', to: 'blue' }}
+      gradient={scanning ? { from: 'red', to: 'orange' } : { from: 'blue', to: 'pink' }}
     >
       {scanning ? 'Stop Scanning' : 'Start Scanning'}
     </Button>

@@ -4,6 +4,7 @@ import { CacheProvider } from '@emotion/react';
 import { useEmotionCache, MantineProvider } from '@mantine/core';
 import { NotificationsProvider } from '@mantine/notifications';
 import { useServerInsertedHTML } from 'next/navigation';
+import { RecoilRoot } from 'recoil';
 
 export default function RootStyleRegistry({ children }: { children: React.ReactNode }) {
   const cache = useEmotionCache();
@@ -21,7 +22,9 @@ export default function RootStyleRegistry({ children }: { children: React.ReactN
   return (
     <CacheProvider value={cache}>
       <MantineProvider theme={{ colorScheme: 'dark' }} withGlobalStyles withNormalizeCSS>
-        <NotificationsProvider>{children}</NotificationsProvider>
+        <NotificationsProvider>
+          <RecoilRoot>{children}</RecoilRoot>
+        </NotificationsProvider>
       </MantineProvider>
     </CacheProvider>
   );
