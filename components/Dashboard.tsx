@@ -11,6 +11,7 @@ import {
 import { useRef, useEffect, useState } from 'react';
 import Attendance from './Attendance';
 import CreateStudent from './CreateStudent';
+import UsersTable from './UserTable';
 
 const useStyles = createStyles((theme) => ({
   wrapper: {
@@ -29,7 +30,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export default function WebCam() {
+export default function Dashboard() {
   const { classes } = useStyles();
 
   const [videoLoading, setVideoLoading] = useState(true);
@@ -71,6 +72,7 @@ export default function WebCam() {
               <Attendance videoRef={videoRef} />
               <CreateStudent videoRef={videoRef} />
             </SimpleGrid>
+            <UsersTable />
           </Paper>
         </SimpleGrid>
       </div>

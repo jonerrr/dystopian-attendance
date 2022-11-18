@@ -11,6 +11,7 @@ interface AttendanceProps {
 interface UserData {
   name: string;
   attendedAt: Date;
+  role: string;
 }
 
 const scanningState = atom({
@@ -22,7 +23,7 @@ export const attendanceSelector = selector({
   get: ({ get }) => get(scanningState),
 });
 
-const userState = atom<UserData[]>({
+export const userState = atom<UserData[]>({
   key: 'userState',
   default: [],
 });
@@ -41,16 +42,17 @@ export default function Attendance({ videoRef }: AttendanceProps) {
     let descriptors: faceApi.LabeledFaceDescriptors[] = [];
 
     //TODO replace with API
-    Object.keys(localStorage).forEach((k) => {
-      // dev build cache thing
-      if (k !== 'ally-supports-cache') {
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const label of Object.keys(localStorage)) {
+      if (label !== 'ally-supports-cache' && !users.some((u) => u.name === label)) {
         descriptors.push(
-          new faceApi.LabeledFaceDescriptors(k, [
-            new Float32Array(Object.values(JSON.parse(localStorage.getItem(k)!))),
+          new faceApi.LabeledFaceDescriptors(label, [
+            new Float32Array(Object.values(JSON.parse(localStorage.getItem(label)!))),
           ])
         );
       }
-    });
+    }
 
     showNotification({
       title: 'Scanning started',
@@ -60,8 +62,6 @@ export default function Attendance({ videoRef }: AttendanceProps) {
 
     addInterval(
       setInterval(async () => {
-        console.log(users);
-        console.log(descriptors);
         const faces = await faceApi
           .detectAllFaces(videoRef.current!, new faceApi.SsdMobilenetv1Options())
           .withFaceLandmarks()
@@ -71,8 +71,8 @@ export default function Attendance({ videoRef }: AttendanceProps) {
 
         faces.forEach((f) => {
           const match = matcher.findBestMatch(f.descriptor);
-
-          setUsers([...users, { name: match.label, attendedAt: new Date() }]);
+          if (match.label === 'unknown') return;
+          setUsers([...users, { name: match.label, attendedAt: new Date(), role: 'student' }]);
           descriptors = descriptors.filter((d) => d.label !== match.label);
 
           showNotification({
@@ -81,7 +81,7 @@ export default function Attendance({ videoRef }: AttendanceProps) {
             autoClose: 7000,
           });
         });
-      }, 5000)
+      }, 2100)
     );
   };
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Header as MantineHeader, Group, Button, ActionIcon, Box } from '@mantine/core';
 import { IconEye } from '@tabler/icons';
 
-export function Header() {
+export default function Header() {
   return (
     <Box pb={10}>
       <MantineHeader height={60} px="md">
