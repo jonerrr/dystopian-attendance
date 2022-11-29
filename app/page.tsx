@@ -1,7 +1,7 @@
 'use client';
 
-import WebCam from '../components/Dashboard';
+import ManageAttendance from '../components/ManageAttendance';
 
 export default function Page() {
-  return <WebCam />;
+  return <ManageAttendance />;
 }

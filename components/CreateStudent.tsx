@@ -35,10 +35,8 @@ export default function CreateStudent({ videoRef }: CreateStudentProps) {
       });
     }
 
-    setScanning(true);
-    videoRef.current?.pause();
     const face = await faceApi
-      .detectSingleFace(videoRef.current!, new faceApi.SsdMobilenetv1Options())
+      .detectSingleFace(videoRef.current!)
       .withFaceLandmarks()
       .withFaceDescriptor();
 
@@ -46,14 +44,14 @@ export default function CreateStudent({ videoRef }: CreateStudentProps) {
       setScanning(false);
       return showNotification({
         title: 'Error',
-        message: 'Could not locate face',
+        message: 'Failed to locate face',
         color: 'red',
         autoClose: 7000,
       });
     }
+
     localStorage.setItem(values.firstName.toLowerCase(), JSON.stringify(face.descriptor));
-    setScanning(false);
-    videoRef.current?.play();
+
     form.reset();
     return showNotification({
       title: 'Success',
@@ -78,7 +76,15 @@ export default function CreateStudent({ videoRef }: CreateStudentProps) {
       </Popover.Target>
 
       <Popover.Dropdown>
-        <form onSubmit={form.onSubmit((v) => submitStudent(v))}>
+        <form
+          onSubmit={form.onSubmit((v) => {
+            setScanning(true);
+            videoRef.current?.pause();
+            submitStudent(v);
+            videoRef.current?.play();
+            setScanning(false);
+          })}
+        >
           <TextInput
             w="90%"
             withAsterisk

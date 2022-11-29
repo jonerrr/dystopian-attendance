@@ -1,81 +1,185 @@
-import * as faceApi from 'face-api.js';
+'use client';
+
+import { useState } from 'react';
 import {
   createStyles,
-  Paper,
-  SimpleGrid,
-  Skeleton,
-  LoadingOverlay,
+  Table,
+  ScrollArea,
+  UnstyledButton,
+  Group,
+  Text,
   Center,
-  Title,
+  TextInput,
 } from '@mantine/core';
-import { useRef, useEffect, useState } from 'react';
-import Attendance from './Attendance';
-import CreateStudent from './CreateStudent';
-import UsersTable from './UserTable';
+import { keys } from '@mantine/utils';
+import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@tabler/icons';
 
 const useStyles = createStyles((theme) => ({
-  wrapper: {
-    minHeight: 500,
-    boxSizing: 'border-box',
-    backgroundImage: `linear-gradient(-60deg, ${theme.colors.violet[9]} 0%, ${theme.colors.red[9]} 100%)`,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.xl,
-    margin: theme.spacing.md,
+  th: {
+    padding: '0 !important',
   },
 
-  column: {
-    boxSizing: 'border-box',
-    borderRadius: theme.radius.md,
-    position: 'relative',
+  control: {
+    width: '100%',
+    padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+
+    '&:hover': {
+      backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
+    },
+  },
+
+  icon: {
+    width: 21,
+    height: 21,
+    borderRadius: 21,
   },
 }));
 
-export default function Dashboard() {
+interface RowData {
+  name: string;
+  email: string;
+  company: string;
+}
+
+interface TableSortProps {
+  data: RowData[];
+}
+
+interface ThProps {
+  children: React.ReactNode;
+  reversed: boolean;
+  sorted: boolean;
+  onSort(): void;
+}
+
+function Th({ children, reversed, sorted, onSort }: ThProps) {
   const { classes } = useStyles();
+  const Icon = sorted ? (reversed ? IconChevronUp : IconChevronDown) : IconSelector;
+  return (
+    <th className={classes.th}>
+      <UnstyledButton onClick={onSort} className={classes.control}>
+        <Group position="apart">
+          <Text weight={500} size="sm">
+            {children}
+          </Text>
+          <Center className={classes.icon}>
+            <Icon size={14} stroke={1.5} />
+          </Center>
+        </Group>
+      </UnstyledButton>
+    </th>
+  );
+}
 
-  const [videoLoading, setVideoLoading] = useState(true);
+function filterData(data: RowData[], search: string) {
+  const query = search.toLowerCase().trim();
+  return data.filter((item) =>
+    keys(data[0]).some((key) => item[key].toLowerCase().includes(query))
+  );
+}
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+function sortData(
+  data: RowData[],
+  payload: { sortBy: keyof RowData | null; reversed: boolean; search: string }
+) {
+  const { sortBy } = payload;
 
-  useEffect(() => {
-    const load = async () => {
-      // await faceApi.nets.tinyFaceDetector.load('/models/');
-      await faceApi.nets.ssdMobilenetv1.load('/models/');
-      await faceApi.nets.faceLandmark68Net.load('/models/');
-      await faceApi.nets.faceRecognitionNet.load('/models/');
-      await faceApi.nets.faceExpressionNet.load('/models/');
+  if (!sortBy) {
+    return filterData(data, payload.search);
+  }
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-      });
-      videoRef.current!.srcObject = mediaStream;
-      videoRef.current!.play();
-      setVideoLoading(false);
-    };
+  return filterData(
+    [...data].sort((a, b) => {
+      if (payload.reversed) {
+        return b[sortBy].localeCompare(a[sortBy]);
+      }
 
-    load();
-  }, []);
+      return a[sortBy].localeCompare(b[sortBy]);
+    }),
+    payload.search
+  );
+}
+
+export default function Dashboard({ data }: TableSortProps) {
+  const [search, setSearch] = useState('');
+  const [sortedData, setSortedData] = useState(data);
+  const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
+  const [reverseSortDirection, setReverseSortDirection] = useState(false);
+
+  const setSorting = (field: keyof RowData) => {
+    const reversed = field === sortBy ? !reverseSortDirection : false;
+    setReverseSortDirection(reversed);
+    setSortBy(field);
+    setSortedData(sortData(data, { sortBy: field, reversed, search }));
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.currentTarget;
+    setSearch(value);
+    setSortedData(sortData(data, { sortBy, reversed: reverseSortDirection, search: value }));
+  };
+
+  const rows = sortedData.map((row) => (
+    <tr key={row.name}>
+      <td>{row.name}</td>
+      <td>{row.email}</td>
+      <td>{row.company}</td>
+    </tr>
+  ));
 
   return (
-    <>
-      <Center>
-        <Title>Attendance</Title>
-      </Center>
-      <div className={classes.wrapper}>
-        <SimpleGrid cols={2} spacing={50} breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
-          <Skeleton visible={videoLoading}>
-            <video ref={videoRef} autoPlay muted controls={false} className={classes.column} />
-          </Skeleton>
-          <Paper shadow="md" p="md" className={classes.column}>
-            <LoadingOverlay visible={videoLoading} overlayBlur={2} />
-            <SimpleGrid cols={2}>
-              <Attendance videoRef={videoRef} />
-              <CreateStudent videoRef={videoRef} />
-            </SimpleGrid>
-            <UsersTable />
-          </Paper>
-        </SimpleGrid>
-      </div>
-    </>
+    <ScrollArea>
+      <TextInput
+        placeholder="Search by any field"
+        mb="md"
+        icon={<IconSearch size={14} stroke={1.5} />}
+        value={search}
+        onChange={handleSearchChange}
+      />
+      <Table
+        horizontalSpacing="md"
+        verticalSpacing="xs"
+        sx={{ tableLayout: 'fixed', minWidth: 700 }}
+      >
+        <thead>
+          <tr>
+            <Th
+              sorted={sortBy === 'name'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('name')}
+            >
+              Name
+            </Th>
+            <Th
+              sorted={sortBy === 'email'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('email')}
+            >
+              Email
+            </Th>
+            <Th
+              sorted={sortBy === 'company'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('company')}
+            >
+              Company
+            </Th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length > 0 ? (
+            rows
+          ) : (
+            <tr>
+              <td colSpan={Object.keys(data[0]).length}>
+                <Text weight={500} align="center">
+                  Nothing found
+                </Text>
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+    </ScrollArea>
   );
 }

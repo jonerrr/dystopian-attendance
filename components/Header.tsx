@@ -13,11 +13,9 @@ export default function Header() {
             <IconEye size={40} />
           </ActionIcon>
 
-          {/* <Group sx={{ height: '100%' }} spacing={0} className={classes.hiddenMobile}>
-            <Link href="/students" className={classes.link}>
-              Students
-            </Link>
-          </Group> */}
+          <Group sx={{ height: '100%' }} spacing={0}>
+            <Link href="/students">Manage Students</Link>
+          </Group>
 
           <Group>
             <Button variant="default">Log in</Button>

@@ -10,7 +10,7 @@ const roleColors: Record<string, string> = {
   student: 'green',
 };
 
-export default function UsersTable() {
+export default function AttendTable() {
   const [users, setUsers] = useRecoilState(userState);
 
   // const removeUser = (name: string) => setUsers(users.filter((u) => u.name !== name));
@@ -24,9 +24,15 @@ export default function UsersTable() {
             src="https://images.unsplash.com/photo-1624298357597-fd92dfbec01d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80"
             radius={30}
           />
-          <Text size="sm" weight={500}>
-            {user.name}
-          </Text>
+
+          <div>
+            <Text size="sm" weight={500}>
+              {user.name}
+            </Text>
+            <Text size="xs" color="dimmed">
+              foo@bar.com
+            </Text>
+          </div>
         </Group>
       </td>
       <td>
@@ -69,7 +75,7 @@ export default function UsersTable() {
             <th>Name</th>
             <th>Time</th>
             <th>Role</th>
-            <th>Email</th>
+            {/* <th>Email</th> */}
             <th />
           </tr>
         </thead>

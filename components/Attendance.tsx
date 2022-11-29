@@ -37,51 +37,82 @@ export default function Attendance({ videoRef }: AttendanceProps) {
   const [interval, addInterval] = useState<NodeJS.Timer | null>(null);
   const [users, setUsers] = useRecoilState(userState);
 
+  // eslint-disable-next-line consistent-return
   const scan = () => {
     setScanning(true);
-    let descriptors: faceApi.LabeledFaceDescriptors[] = [];
+    // let descriptors: faceApi.LabeledFaceDescriptors[] = [];
+    const matchers: faceApi.FaceMatcher[] = [];
 
     //TODO replace with API
 
     // eslint-disable-next-line no-restricted-syntax
     for (const label of Object.keys(localStorage)) {
       if (label !== 'ally-supports-cache' && !users.some((u) => u.name === label)) {
-        descriptors.push(
-          new faceApi.LabeledFaceDescriptors(label, [
-            new Float32Array(Object.values(JSON.parse(localStorage.getItem(label)!))),
-          ])
+        matchers.push(
+          new faceApi.FaceMatcher(
+            new faceApi.LabeledFaceDescriptors(label, [
+              new Float32Array(Object.values(JSON.parse(localStorage.getItem(label)!))),
+            ]),
+            0.6
+          )
         );
       }
     }
 
     showNotification({
       title: 'Scanning started',
-      message: `${descriptors.length} students loaded`,
+      message: `${matchers.length} students loaded`,
       autoClose: 7000,
     });
 
     addInterval(
+      // eslint-disable-next-line consistent-return
       setInterval(async () => {
+        if (!videoRef.current) {
+          return showNotification({
+            title: 'Error',
+            message: 'Failed to fetch video',
+            color: 'red',
+            autoClose: 7000,
+          });
+        }
+        if (!matchers.length) {
+          return showNotification({
+            title: 'Error',
+            message: 'No more students left to scan',
+            color: 'red',
+            autoClose: 7000,
+          });
+        }
+
         const faces = await faceApi
-          .detectAllFaces(videoRef.current!, new faceApi.SsdMobilenetv1Options())
+          .detectAllFaces(videoRef.current!)
           .withFaceLandmarks()
           .withFaceDescriptors();
 
-        const matcher = new faceApi.FaceMatcher(descriptors);
+        // const matcher = new faceApi.FaceMatcher(descriptors, 0.6);
 
         faces.forEach((f) => {
-          const match = matcher.findBestMatch(f.descriptor);
-          if (match.label === 'unknown') return;
-          setUsers([...users, { name: match.label, attendedAt: new Date(), role: 'student' }]);
-          descriptors = descriptors.filter((d) => d.label !== match.label);
+          // const match = matcher.findBestMatch(f.descriptor);
+          // matchers.forEach((m) => {
 
-          showNotification({
-            title: 'Match detected',
-            message: `${match.label} attended`,
-            autoClose: 7000,
-          });
+          // matchers = matchers.filter((d) => d !== match.label);
+          // });
+
+          // eslint-disable-next-line no-plusplus
+          for (let i = 0; i < matchers.length; i++) {
+            const match = matchers[i].findBestMatch(f.descriptor);
+            if (match.label === 'unknown') return;
+            setUsers([...users, { name: match.label, attendedAt: new Date(), role: 'student' }]);
+            matchers.splice(i);
+            showNotification({
+              title: 'Match detected',
+              message: `${match.label} attended`,
+              autoClose: 7000,
+            });
+          }
         });
-      }, 2100)
+      }, 2000)
     );
   };
 
